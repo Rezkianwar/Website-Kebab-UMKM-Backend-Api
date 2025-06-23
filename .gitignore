@@ -1,28 +1,28 @@
 # Node.js
-node_modules/  # Folder tempat semua dependensi Node.js diinstal
-.env           # File variabel lingkungan yang berisi rahasia
-npm-debug.log* # Log debug NPM
+node_modules/  
+.env           
+npm-debug.log* 
 yarn-debug.log*
 yarn-error.log*
 
 # Logs
-logs/          # Jika Anda memiliki folder untuk log aplikasi
+logs/        
 *.log
 
 # Dependency files
-package-lock.json # Ini opsional, beberapa tim memilih untuk menyertakannya, tapi jika Anda mengelola monorepo, mungkin ada konflik. Untuk sub-proyek, biasanya disertakan. Namun, jika Anda punya package-lock.json di root monorepo, mungkin Anda ingin mengecualikan yang ini.
+package-lock.json 
 # Untuk saat ini, saya akan membiarkannya tidak dikomentari (tidak disembunyikan) karena ini spesifik untuk paket backend Anda.
 
 # macOS specific files
 .DS_Store
 
 # VS Code specific files
-.vscode/        # Folder konfigurasi VS Code (opsional, tergantung preferensi tim)
+.vscode/       
 *.code-workspace
 
 # Build artifacts
-dist/           # Jika Anda memiliki proses build untuk backend Anda yang menghasilkan folder 'dist'
-build/          # Atau jika menggunakan folder 'build'
+dist/          
+build/        
 
 # Production specific files (if any, e.g., temporary backups)
 *.bak
