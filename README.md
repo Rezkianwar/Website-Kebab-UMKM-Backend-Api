@@ -28,7 +28,7 @@ cp .env.example .env
 Edit file `.env`:
 ```env
 NODE_ENV=development
-PORT=5000
+PORT=Your-port. ex:5000
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
 JWT_EXPIRE=30d
