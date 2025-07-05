@@ -1,4 +1,5 @@
 const Sale = require("../models/Sale");
+const Product = require("../models/Product");
 const ErrorResponse = require("../utils/errorResponse");
 const asyncHandler = require("../middleware/async");
 
@@ -57,8 +58,51 @@ exports.getSalesByDateRange = asyncHandler(async (req, res, next) => {
 // @route   POST /api/sales
 // @access  Private
 exports.createSale = asyncHandler(async (req, res, next) => {
-  const sale = await Sale.create(req.body);
-  res.status(201).json({ success: true, data: sale });
+  let sale; // 👈 Deklarasikan di luar try-catch
+
+  try {
+    // 1. Validasi produk
+    await Promise.all(
+      req.body.items.map(async (item) => {
+        const product = await Product.findById(item.product);
+        if (!product) {
+          throw new ErrorResponse(
+            `Produk dengan ID ${item.product} tidak ditemukan`,
+            404
+          );
+        }
+      })
+    );
+
+    // 2. Buat penjualan
+    sale = await Sale.create(req.body); // 👈 Gunakan variabel yang sudah dideklarasikan
+
+    // 3. Update totalSold
+    await Promise.all(
+      req.body.items.map((item) =>
+        Product.findByIdAndUpdate(item.product, {
+          $inc: { totalSold: item.quantity },
+        })
+      ) // 👈 Add a closing parenthesis here
+    );
+    return res.status(201).json({ success: true, data: sale });
+  } catch (err) {
+    // 4. Rollback jika error terjadi setelah penjualan dibuat
+    if (sale) {
+      await Sale.findByIdAndDelete(sale._id);
+
+      // Rollback totalSold
+      await Promise.all(
+        req.body.items.map((item) =>
+          Product.findByIdAndUpdate(item.product, {
+            $inc: { totalSold: -item.quantity },
+          })
+        )
+      );
+    }
+
+    next(err);
+  }
 });
 
 // @desc    Get recent sales
@@ -103,26 +147,34 @@ exports.getSale = asyncHandler(async (req, res, next) => {
 // @route   PUT /api/sales/:id
 // @access  Private
 exports.updateSale = asyncHandler(async (req, res, next) => {
-  let sale = await Sale.findById(req.params.id);
-
-  if (!sale) {
-    return next(
-      new ErrorResponse(
-        `Penjualan dengan id ${req.params.id} tidak ditemukan`,
-        404
-      )
-    );
-  }
-
-  sale = await Sale.findByIdAndUpdate(req.params.id, req.body, {
+  const oldSale = await Sale.findById(req.params.id);
+  const updatedSale = await Sale.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
   });
 
-  res.status(200).json({
-    success: true,
-    data: sale,
-  });
+  // 🔥 Update totalSold jika ada perubahan quantity
+  if (req.body.items) {
+    // 1. Kembalikan nilai lama
+    await Promise.all(
+      oldSale.items.map(async (item) => {
+        await Product.findByIdAndUpdate(item.product, {
+          $inc: { totalSold: -item.quantity },
+        });
+      })
+    );
+
+    // 2. Tambahkan nilai baru
+    await Promise.all(
+      req.body.items.map(async (item) => {
+        await Product.findByIdAndUpdate(item.product, {
+          $inc: { totalSold: item.quantity },
+        });
+      })
+    );
+  }
+
+  res.status(200).json({ success: true, data: updatedSale });
 });
 
 // @desc    Delete sale
@@ -131,21 +183,17 @@ exports.updateSale = asyncHandler(async (req, res, next) => {
 exports.deleteSale = asyncHandler(async (req, res, next) => {
   const sale = await Sale.findById(req.params.id);
 
-  if (!sale) {
-    return next(
-      new ErrorResponse(
-        `Penjualan dengan id ${req.params.id} tidak ditemukan`,
-        404
-      )
-    );
-  }
+  // 🔥 Kurangi totalSold
+  await Promise.all(
+    sale.items.map(async (item) => {
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: { totalSold: -item.quantity },
+      });
+    })
+  );
 
   await sale.deleteOne();
-
-  res.status(200).json({
-    success: true,
-    data: {},
-  });
+  res.status(200).json({ success: true, data: {} });
 });
 
 // @desc    Get sales statistics

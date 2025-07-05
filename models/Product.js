@@ -50,6 +50,11 @@ const ProductSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    totalSold: {
+      type: Number,
+      default: 0,
+      min: [0, "Total penjualan tidak boleh negatif"],
+    },
   },
   {
     timestamps: true,

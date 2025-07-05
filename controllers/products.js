@@ -89,15 +89,15 @@ exports.createProduct = asyncHandler(async (req, res, next) => {
 // @access  Private
 exports.getTopProducts = asyncHandler(async (req, res, next) => {
   const topProducts = await Product.find()
-    .sort({ totalSold: -1 }) // Urutkan berdasarkan total penjualan turun
-    .limit(5); // Ambil 5 produk terlaris
+    .sort({ totalSold: -1 })
+    .limit(5)
+    .select("name totalSold imageUrl"); // 🔥 Hanya ambil field yang diperlukan
 
   res.status(200).json({
     success: true,
     data: topProducts,
   });
 });
-
 // @desc    Get single product
 // @route   GET /api/products/:id
 // @access  Public
