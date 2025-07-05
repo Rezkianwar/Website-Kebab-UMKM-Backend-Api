@@ -5,8 +5,6 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 
 const allowedOrigins = [
-  "http://localhost:3000", // Untuk pengembangan lokal frontend
-  "https://your-backend-api-local-test.com", // Jika ada testing lokal backend
   "https://kebab-umkm.netlify.app", // <<< Pastikan ini ada di daftar!
   // Tambahkan domain lain jika diperlukan
 ];
@@ -119,13 +117,13 @@ app.get("/api/health", (req, res) => {
 });
 
 // Serve static files from React build folder in production
-// if (process.env.NODE_ENV === "production") {
-//   app.use(express.static(path.join(__dirname, "public")));
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "public")));
 
-//   app.get("*", (req, res) => {
-//     res.sendFile(path.join(__dirname, "public", "index.html"));
-//   });
-// }
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+  });
+}
 
 // Error handler middleware
 app.use(errorHandler);
