@@ -3,11 +3,6 @@ const express = require("express");
 const path = require("path");
 const dotenv = require("dotenv");
 const cors = require("cors");
-
-const allowedOrigins = [
-  "https://kebab-umkm.netlify.app", // <<< Pastikan ini ada di daftar!
-  // Tambahkan domain lain jika diperlukan
-];
 const morgan = require("morgan");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
@@ -47,18 +42,6 @@ if (process.env.NODE_ENV === "development") {
 // Security middleware
 app.use(helmet());
 app.use(cors());
-// app.use(
-//   cors({
-//     origin: function (origin, callback) {
-//       if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-//         callback(null, true);
-//       } else {
-//         callback(new Error("Not allowed by CORS"));
-//       }
-//     },
-//     credentials: true, // Penting jika Anda menggunakan cookie atau header otorisasi
-//   })
-// );
 // app.use(mongoSanitize());
 // app.use(xss());
 // Middleware sanitasi manual (aman untuk req.body & req.query)
@@ -119,6 +102,10 @@ app.get("/api/health", (req, res) => {
 // Serve static files from React build folder in production
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "public")));
+
+  // app.get("*", (req, res) => {
+  //   res.sendFile(path.join(__dirname, "public", "index.html"));
+  // });
 }
 
 // Error handler middleware
